@@ -418,113 +418,121 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
-    <script>
-        function ajustarHorarioParaBrasilia(date) {
-            const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const brasiliaTimeZone = 'America/Sao_Paulo';
-            
-            // Verifica se o fuso horário do usuário é de Portugal
-            const timeZonesPortugal = ['Europe/Lisbon', 'Atlantic/Azores'];
-            
-            if (timeZonesPortugal.includes(userTimeZone)) {
-                // Calcula a diferença de horas entre o horário de Portugal e Brasília
-                const brasiliaDate = new Date(date);
-                brasiliaDate.setHours(brasiliaDate.getHours() - 3); // Ajusta para UTC-3 (Brasília)
-                return brasiliaDate.toLocaleString();
+  <script>
+    function ajustarHorarioParaBrasilia(date) {
+        const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const brasiliaTimeZone = 'America/Sao_Paulo';
+        
+        // Verifica se o fuso horário do usuário é de Portugal
+        const timeZonesPortugal = ['Europe/Lisbon', 'Atlantic/Azores'];
+        
+        if (timeZonesPortugal.includes(userTimeZone)) {
+            // Calcula a diferença de horas entre o horário de Portugal e Brasília
+            const brasiliaDate = new Date(date);
+            brasiliaDate.setHours(brasiliaDate.getHours() - 3); // Ajusta para UTC-3 (Brasília)
+            return brasiliaDate.toLocaleString('pt-BR', { timeZone: brasiliaTimeZone });
+        }
+        
+        // Se não for Portugal, assume que o usuário está no fuso de Brasília
+        return new Intl.DateTimeFormat('pt-BR', { 
+            timeZone: brasiliaTimeZone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).format(date);
+    }
+
+    function showData(event) {
+        event.preventDefault();
+        const now = new Date();
+        const formattedDateTime = ajustarHorarioParaBrasilia(now);
+
+        document.getElementById('resultUsername').textContent = getUsernameFromURL();
+        document.getElementById('resultDateTime').textContent = formattedDateTime;
+        document.getElementById('resultPresentStudents').textContent = document.getElementById('presentStudents').value;
+        document.getElementById('resultApprovedStudents').textContent = document.getElementById('approvedStudents').value;
+        document.getElementById('resultComments').textContent = document.getElementById('comments').value;
+
+        document.getElementById('formSection').style.display = 'none';
+        document.getElementById('resultSection').classList.add('show');
+    }
+
+    function getUsernameFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('username') || 'Usuário';
+    }
+
+    function editData() {
+        document.getElementById('editDateTime').value = document.getElementById('resultDateTime').textContent;
+        document.getElementById('editPresentStudents').value = document.getElementById('resultPresentStudents').textContent;
+        document.getElementById('editApprovedStudents').value = document.getElementById('resultApprovedStudents').textContent;
+        document.getElementById('editComments').value = document.getElementById('resultComments').textContent;
+
+        document.getElementById('resultSection').classList.remove('show');
+        document.getElementById('editSection').classList.add('show');
+    }
+
+    function updateData(event) {
+        event.preventDefault();
+
+        document.getElementById('resultDateTime').textContent = document.getElementById('editDateTime').value;
+        document.getElementById('resultPresentStudents').textContent = document.getElementById('editPresentStudents').value;
+        document.getElementById('resultApprovedStudents').textContent = document.getElementById('editApprovedStudents').value;
+        document.getElementById('resultComments').textContent = document.getElementById('editComments').value;
+
+        document.getElementById('editSection').classList.remove('show');
+        document.getElementById('resultSection').classList.add('show');
+    }
+
+    function sendDataToGoogleSheets() {
+        const loadingMessage = document.getElementById('loading-message');
+        loadingMessage.classList.add('show');
+        loadingMessage.style.animation = 'fadeIn 0.5s ease-in-out';
+
+        const now = new Date();
+        const formattedEndDateTime = ajustarHorarioParaBrasilia(now);
+
+        const data = {
+            username: document.getElementById('resultUsername').textContent,
+            course: 'Aula de Segurança Operacional',
+            dateTime: document.getElementById('resultDateTime').textContent,
+            endDateTime: formattedEndDateTime,
+            presentStudents: document.getElementById('resultPresentStudents').textContent,
+            approvedStudents: document.getElementById('resultApprovedStudents').textContent,
+            comments: document.getElementById('resultComments').textContent
+        };
+
+        fetch('https://script.google.com/macros/s/AKfycbx_F85liTAecY0_nt7S2dwwOvQ8BoabguoM-mHAa9e0iBh1Mx0Mtw64NbE41wu-xGAxew/exec', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.result === 'success') {
+                document.getElementById('resultSection').classList.remove('show');
+                document.getElementById('successMessage').style.display = 'block';
+            } else {
+                alert('Erro ao enviar dados: ' + result.error);
             }
-            
-            // Se não for Portugal, assume que o usuário está no fuso de Brasília
-            return new Intl.DateTimeFormat('pt-BR', { timeZone: brasiliaTimeZone }).format(date);
-        }
-    
-        function showData(event) {
-            event.preventDefault();
-            const now = new Date();
-            const formattedDateTime = ajustarHorarioParaBrasilia(now);
-    
-            document.getElementById('resultUsername').textContent = getUsernameFromURL();
-            document.getElementById('resultDateTime').textContent = formattedDateTime;
-            document.getElementById('resultPresentStudents').textContent = document.getElementById('presentStudents').value;
-            document.getElementById('resultApprovedStudents').textContent = document.getElementById('approvedStudents').value;
-            document.getElementById('resultComments').textContent = document.getElementById('comments').value;
-    
-            document.getElementById('formSection').style.display = 'none';
-            document.getElementById('resultSection').classList.add('show');
-        }
-    
-        function getUsernameFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('username') || 'Usuário';
-        }
-    
-        function editData() {
-            document.getElementById('editDateTime').value = document.getElementById('resultDateTime').textContent;
-            document.getElementById('editPresentStudents').value = document.getElementById('resultPresentStudents').textContent;
-            document.getElementById('editApprovedStudents').value = document.getElementById('resultApprovedStudents').textContent;
-            document.getElementById('editComments').value = document.getElementById('resultComments').textContent;
-    
-            document.getElementById('resultSection').classList.remove('show');
-            document.getElementById('editSection').classList.add('show');
-        }
-    
-        function updateData(event) {
-            event.preventDefault();
-    
-            document.getElementById('resultDateTime').textContent = document.getElementById('editDateTime').value;
-            document.getElementById('resultPresentStudents').textContent = document.getElementById('editPresentStudents').value;
-            document.getElementById('resultApprovedStudents').textContent = document.getElementById('editApprovedStudents').value;
-            document.getElementById('resultComments').textContent = document.getElementById('editComments').value;
-    
-            document.getElementById('editSection').classList.remove('show');
-            document.getElementById('resultSection').classList.add('show');
-        }
-    
-        function sendDataToGoogleSheets() {
-            const loadingMessage = document.getElementById('loading-message');
-            loadingMessage.classList.add('show');
-            loadingMessage.style.animation = 'fadeIn 0.5s ease-in-out';
-    
-            const now = new Date();
-            const formattedEndDateTime = ajustarHorarioParaBrasilia(now);
-    
-            const data = {
-                username: document.getElementById('resultUsername').textContent,
-                course: 'Aula de Segurança Operacional',
-                dateTime: document.getElementById('resultDateTime').textContent,
-                endDateTime: formattedEndDateTime,
-                presentStudents: document.getElementById('resultPresentStudents').textContent,
-                approvedStudents: document.getElementById('resultApprovedStudents').textContent,
-                comments: document.getElementById('resultComments').textContent
-            };
-    
-            fetch('https://script.google.com/macros/s/AKfycbx_F85liTAecY0_nt7S2dwwOvQ8BoabguoM-mHAa9e0iBh1Mx0Mtw64NbE41wu-xGAxew/exec', {
-                method: 'POST',
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.result === 'success') {
-                    document.getElementById('resultSection').classList.remove('show');
-                    document.getElementById('successMessage').style.display = 'block';
-                } else {
-                    alert('Erro ao enviar dados: ' + result.error);
-                }
-            })
-            .catch(error => {
-                alert('Erro ao enviar dados: ' + error.message);
-            })
-            .finally(() => {
-                // Remove a mensagem de loading após alguns segundos
+        })
+        .catch(error => {
+            alert('Erro ao enviar dados: ' + error.message);
+        })
+        .finally(() => {
+            // Remove a mensagem de loading após alguns segundos
+            setTimeout(() => {
+                loadingMessage.style.animation = 'fadeOut 0.5s ease-in-out';
                 setTimeout(() => {
-                    loadingMessage.style.animation = 'fadeOut 0.5s ease-in-out';
-                    setTimeout(() => {
-                        loadingMessage.classList.remove('show');
-                    }, 500); // Aguarda a animação de fadeOut antes de remover a classe 'show'
-                }, 2000); // Tempo em milissegundos que a mensagem ficará visível (2 segundos)
-            });
-        }
-    </script>
-    
+                    loadingMessage.classList.remove('show');
+                }, 500); // Aguarda a animação de fadeOut antes de remover a classe 'show'
+            }, 2000); // Tempo em milissegundos que a mensagem ficará visível (2 segundos)
+        });
+    }
+</script>
+
 </body>
 
 </html>
