@@ -419,20 +419,21 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
     <script>
-        function showData(event) {
-            event.preventDefault();
-            const now = new Date();
-            const formattedDateTime = ajustarHorarioBrasilia(now); // Ajusta o horário para Brasília
-    
-            document.getElementById('resultUsername').textContent = getUsernameFromURL();
-            document.getElementById('resultDateTime').textContent = formattedDateTime;
-            document.getElementById('resultPresentStudents').textContent = document.getElementById('presentStudents').value;
-            document.getElementById('resultApprovedStudents').textContent = document.getElementById('approvedStudents').value;
-            document.getElementById('resultComments').textContent = document.getElementById('comments').value;
-    
-            document.getElementById('formSection').style.display = 'none';
-            document.getElementById('resultSection').classList.add('show');
-        }
+      function showData(event) {
+    event.preventDefault();
+    const now = new Date();
+    const formattedDateTime = ajustarHorarioBrasilia(now);
+
+    document.getElementById('resultUsername').textContent = getUsernameFromURL();
+    document.getElementById('resultDateTime').textContent = formattedDateTime;
+    document.getElementById('resultPresentStudents').textContent = document.getElementById('presentStudents').value;
+    document.getElementById('resultApprovedStudents').textContent = document.getElementById('approvedStudents').value;
+    document.getElementById('resultComments').textContent = document.getElementById('comments').value;
+
+    document.getElementById('formSection').style.display = 'none';
+    document.getElementById('resultSection').classList.add('show');
+}
+
     
         function getUsernameFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -505,14 +506,22 @@
             });
         }
     
-       function ajustarHorarioBrasilia(date) {
-    // Clona a data original para não modificar a data original
-    const brasiliaDate = new Date(date);
+    function ajustarHorarioBrasilia(date) {
+    // Converte a data para o fuso horário de Brasília
+    const options = {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    };
 
-    // Define explicitamente o fuso horário de Brasília
-    brasiliaDate.setUTCHours(brasiliaDate.getUTCHours() - 3);
+    // Formata a data no formato desejado
+    return new Intl.DateTimeFormat('pt-BR', options).format(date);
+}
 
-    return brasiliaDate.toLocaleString();
 }
 
     </script>
