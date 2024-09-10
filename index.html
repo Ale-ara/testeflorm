@@ -419,21 +419,38 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
     <script>
-      function showData(event) {
-    event.preventDefault();
-    const now = new Date();
-    const formattedDateTime = ajustarHorarioBrasilia(now);
-
-    document.getElementById('resultUsername').textContent = getUsernameFromURL();
-    document.getElementById('resultDateTime').textContent = formattedDateTime;
-    document.getElementById('resultPresentStudents').textContent = document.getElementById('presentStudents').value;
-    document.getElementById('resultApprovedStudents').textContent = document.getElementById('approvedStudents').value;
-    document.getElementById('resultComments').textContent = document.getElementById('comments').value;
-
-    document.getElementById('formSection').style.display = 'none';
-    document.getElementById('resultSection').classList.add('show');
-}
-
+        function ajustarHorarioParaBrasilia(date) {
+            const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const brasiliaTimeZone = 'America/Sao_Paulo';
+            
+            // Verifica se o fuso horário do usuário é de Portugal
+            const timeZonesPortugal = ['Europe/Lisbon', 'Atlantic/Azores'];
+            
+            if (timeZonesPortugal.includes(userTimeZone)) {
+                // Calcula a diferença de horas entre o horário de Portugal e Brasília
+                const brasiliaDate = new Date(date);
+                brasiliaDate.setHours(brasiliaDate.getHours() - 3); // Ajusta para UTC-3 (Brasília)
+                return brasiliaDate.toLocaleString();
+            }
+            
+            // Se não for Portugal, assume que o usuário está no fuso de Brasília
+            return new Intl.DateTimeFormat('pt-BR', { timeZone: brasiliaTimeZone }).format(date);
+        }
+    
+        function showData(event) {
+            event.preventDefault();
+            const now = new Date();
+            const formattedDateTime = ajustarHorarioParaBrasilia(now);
+    
+            document.getElementById('resultUsername').textContent = getUsernameFromURL();
+            document.getElementById('resultDateTime').textContent = formattedDateTime;
+            document.getElementById('resultPresentStudents').textContent = document.getElementById('presentStudents').value;
+            document.getElementById('resultApprovedStudents').textContent = document.getElementById('approvedStudents').value;
+            document.getElementById('resultComments').textContent = document.getElementById('comments').value;
+    
+            document.getElementById('formSection').style.display = 'none';
+            document.getElementById('resultSection').classList.add('show');
+        }
     
         function getUsernameFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -468,7 +485,7 @@
             loadingMessage.style.animation = 'fadeIn 0.5s ease-in-out';
     
             const now = new Date();
-            const formattedEndDateTime = ajustarHorarioBrasilia(now); // Ajusta o horário de término para Brasília
+            const formattedEndDateTime = ajustarHorarioParaBrasilia(now);
     
             const data = {
                 username: document.getElementById('resultUsername').textContent,
@@ -497,37 +514,17 @@
                 alert('Erro ao enviar dados: ' + error.message);
             })
             .finally(() => {
+                // Remove a mensagem de loading após alguns segundos
                 setTimeout(() => {
                     loadingMessage.style.animation = 'fadeOut 0.5s ease-in-out';
                     setTimeout(() => {
                         loadingMessage.classList.remove('show');
-                    }, 500);
-                }, 2000);
+                    }, 500); // Aguarda a animação de fadeOut antes de remover a classe 'show'
+                }, 2000); // Tempo em milissegundos que a mensagem ficará visível (2 segundos)
             });
         }
-    
-    function ajustarHorarioBrasilia(date) {
-    // Converte a data para o fuso horário de Brasília
-    const options = {
-        timeZone: 'America/Sao_Paulo',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    };
-
-    // Formata a data no formato desejado
-    return new Intl.DateTimeFormat('pt-BR', options).format(date);
-}
-
-}
-
     </script>
     
-
-
 </body>
 
 </html>
