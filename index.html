@@ -505,14 +505,16 @@
             });
         }
     
-        function ajustarHorarioBrasilia(date) {
-            const brasiliaOffset = -3 * 60; // UTC-3
-            const localOffset = date.getTimezoneOffset(); // Fuso horário do cliente
-    
-            const adjustedDate = new Date(date.getTime() + (localOffset - brasiliaOffset) * 60000); // Ajusta o horário
-    
-            return adjustedDate.toLocaleString(); // Retorna o horário formatado
-        }
+       function ajustarHorarioBrasilia(date) {
+    // Clona a data original para não modificar a data original
+    const brasiliaDate = new Date(date);
+
+    // Define explicitamente o fuso horário de Brasília
+    brasiliaDate.setUTCHours(brasiliaDate.getUTCHours() - 3);
+
+    return brasiliaDate.toLocaleString();
+}
+
     </script>
     
 
